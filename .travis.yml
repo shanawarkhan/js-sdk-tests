@@ -1,0 +1,31 @@
+dist: trusty
+env:
+  global:
+    - CDN_URL=http://affdex-sdk-dist.s3-website-us-east-1.amazonaws.com/js
+    - PATH=$PATH:/usr/lib/chromium-browser/
+    - LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/lib/chromium-browser/libs
+    - DISPLAY=:99.0
+matrix:
+  include:
+    - language: node_js
+      env: BRANCH=nightly
+    - language: node_js
+      env: BRANCH=latest
+install:
+  - sudo apt-get update
+  - sudo apt-get --yes --force-yes install chromium-chromedriver
+before_script:
+  - sh -e /etc/init.d/xvfb start
+  - mkdir src
+  - SRC_URL=${CDN_URL}/${BRANCH}
+  - wget ${SRC_URL}/affdex.js -O src/affdex.js
+  - wget ${SRC_URL}/affdex-worker.js -O src/affdex-worker.js
+  - wget ${SRC_URL}/affdex-native-bindings.js -O src/affdex-native-bindings.js
+  - wget ${SRC_URL}/affdex-native-bindings.data -O src/affdex-native-bindings.data
+  - wget ${SRC_URL}/affdex-native-bindings.asm.js -O src/affdex-native-bindings.asm.js
+  - npm install
+script:
+  - npm test
+notifications:
+  slack:
+    on_failure: always
