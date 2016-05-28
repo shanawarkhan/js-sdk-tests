@@ -1,11 +1,5 @@
 dist: trusty
 language: node_js
-env:
-  global:
-  - CDN_URL=http://affdex-sdk-dist.s3-website-us-east-1.amazonaws.com/js
-  - PATH=$PATH:/usr/lib/chromium-browser/
-  - LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/lib/chromium-browser/libs
-  - DISPLAY=:99.0
 matrix:
   include:
   - env: BRANCH=nightly
@@ -15,7 +9,11 @@ install:
 before_script:
 - sh -e /etc/init.d/xvfb start
 - mkdir src
-- SRC_URL=${CDN_URL}/${BRANCH}
+- export PATH=$PATH:/usr/lib/chromium-browser/
+- export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/lib/chromium-browser/libs
+- export DISPLAY=:99.0
+- export CDN_URL=http://affdex-sdk-dist.s3-website-us-east-1.amazonaws.com/js
+- export SRC_URL=${CDN_URL}/${BRANCH}
 - wget ${SRC_URL}/affdex.js -O src/affdex.js
 - wget ${SRC_URL}/affdex-worker.js -O src/affdex-worker.js
 - wget ${SRC_URL}/affdex-native-bindings.js -O src/affdex-native-bindings.js
