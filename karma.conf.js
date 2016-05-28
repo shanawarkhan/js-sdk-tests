@@ -16,22 +16,7 @@ module.exports = function(config) {
     // list of files / patterns to load in the browser
     files: [
       'spec/*spec.js',
-      'src/affdex.js',
-
-      { pattern:  '/src/affdex*.js',
-        watched:  true,
-        served:   true,
-        included: false },
-
-      { pattern:  '/src/affdex*.mem',
-        watched:  true,
-        served:   true,
-        included: false },
-
-      { pattern:  '/src/affdex*.data',
-        watched:  true,
-        served:   true,
-        included: false }
+      'src/affdex.js'
     ],
 
 
@@ -77,5 +62,5 @@ module.exports = function(config) {
     // Continuous Integration mode
     // if true, Karma captures browsers, runs the tests and exits
     singleRun: true
-  })
-}
+  });
+};
