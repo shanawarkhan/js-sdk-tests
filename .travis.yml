@@ -1,4 +1,5 @@
 dist: trusty
+language: node_js
 env:
   global:
   - CDN_URL=http://affdex-sdk-dist.s3-website-us-east-1.amazonaws.com/js
@@ -7,10 +8,7 @@ env:
   - DISPLAY=:99.0
 matrix:
   include:
-  - language: node_js
-    env: BRANCH=nightly
-  - language: node_js
-    env: BRANCH=latest
+  - env: BRANCH=nightly
 install:
 - sudo apt-get update
 - sudo apt-get --yes --force-yes install chromium-chromedriver
