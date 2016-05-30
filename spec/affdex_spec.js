@@ -206,6 +206,7 @@ describe("camera detector tests", function() {
    });
 
    jasmine.DEFAULT_TIMEOUT_INTERVAL = 80000;
+   var timeout = 13000;
 
    it("photo detector is started callback is called correctly", function(done) {
      var observer = {onInitialized: function(){}};
@@ -218,7 +219,7 @@ describe("camera detector tests", function() {
       setTimeout(function() {
         expect(observer.onInitialized).toHaveBeenCalled();
         done();
-      }, 5000);
+      }, timeout);
     });
 
     it("frame detector is started callback is called correctly", function(done) {
@@ -232,6 +233,6 @@ describe("camera detector tests", function() {
        setTimeout(function() {
          expect(observer.onInitialized).toHaveBeenCalled();
          done();
-       }, 5000);
+       }, timeout);
      });
 });
