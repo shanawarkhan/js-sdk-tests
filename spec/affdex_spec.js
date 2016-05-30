@@ -1,6 +1,7 @@
 var AFFDEX_SRV_URL = window.__env__.AFFDEX_JS_SDK_URL+'/';
 var TEST_DATA_SRV_URL = window.__env__.TEST_DATA_SRV_URL+'/';
-var VIDEO_FILE_URL = "videos/web_face_video.mp4";
+var FACE_FILE_URL = "videos/web_face_video.mp4";
+var BLACK_FILE_URL = "videos/black.mp4";
 
 describe("common detector tests", function() {
   var detectors = ["Detector", "FrameDetector", "PhotoDetector", "CameraDetector"];
@@ -232,7 +233,7 @@ describe("camera detector tests", function() {
      detector.addEventListener("onInitialized", observer.onInitialized);
      spyOn(navigator, "getMedia").and.callFake(function() {
        detector.onWebcamReady(new Blob());
-       detector.videoElement.src = TEST_DATA_SRV_URL+VIDEO_FILE_URL;
+       detector.videoElement.src = TEST_DATA_SRV_URL+BLACK_FILE_URL;
        detector.videoElement.play();
      });
 
@@ -246,7 +247,7 @@ describe("camera detector tests", function() {
        expect(observer.onInitialized).toHaveBeenCalled();
        detector.stop();
        done();
-     }, timeout);
+     }, 20000);
     });
 
    it("photo detector is started callback is called correctly", function(done) {
