@@ -1,3 +1,7 @@
+var AFFDEX_SRV_URL = window.__env__.AFFDEX_JS_SDK_URL+'/';
+var TEST_DATA_SRV_URL = window.__env__.TEST_DATA_SRV_URL+'/';
+var VIDEO_FILE_URL = "videos/web_face_video.mp4";
+
 describe("common detector tests", function() {
   var detectors = ["Detector", "FrameDetector", "PhotoDetector", "CameraDetector"];
 
@@ -113,6 +117,13 @@ describe("camera detector tests", function() {
   var height = 480;
   var processFPS = 5;
   var newElement = document.createElement('div');
+
+  beforeEach(function(){
+    spyOn(affdex, "getAffdexDotJsLocation").and.callFake(function() {
+      return AFFDEX_SRV_URL;
+    });
+  });
+
   it("constructor parameters to be set properly", function () {
     var divRoot = document.getElementById("affdex_elements");
     var width = 640;
@@ -179,7 +190,7 @@ describe("camera detector tests", function() {
       detector.getCallback("onWebcamAllowed")();
     });
     spyOn(navigator, "getMedia").and.callFake(function() {
-      detector.onWebcamReady(null);
+      detector.onWebcamReady(new Blob());
     });
     detector.start();
     expect(newElement.appendChild).toHaveBeenCalled();
@@ -187,26 +198,56 @@ describe("camera detector tests", function() {
                               jasmine.any(Function), jasmine.any(Function));
     expect(observer.onWebcamAllowed).toHaveBeenCalled();
   });
+
+  it("photo detector constructor parameters to be set properly", function () {
+    var detector = new affdex.PhotoDetector();
+      expect(detector.isRunning).toBe(false);
+      expect(detector.staticMode).toBe(true);
+      expect(detector.detectEmojis).toBe(false);
+      expect(detector.isWorkerInitialized).toBe(false);
+      expect(detector.faceDetectorMode).toBe(affdex.FaceDetectorMode.SMALL_FACES);
+  });
+
  });
 
- describe("photo detector tests", function() {
+ describe("long and slow tests", function() {
    beforeEach(function(){
      spyOn(affdex, "getAffdexDotJsLocation").and.callFake(function() {
-       return window.__env__["AFFDEX_JS_SDK_URL"]+'/';
+       return AFFDEX_SRV_URL;
      });
-   });
-
-   it("constructor parameters to be set properly", function () {
-     var detector = new affdex.PhotoDetector();
-       expect(detector.isRunning).toBe(false);
-       expect(detector.staticMode).toBe(true);
-       expect(detector.detectEmojis).toBe(false);
-       expect(detector.isWorkerInitialized).toBe(false);
-       expect(detector.faceDetectorMode).toBe(affdex.FaceDetectorMode.SMALL_FACES);
    });
 
    jasmine.DEFAULT_TIMEOUT_INTERVAL = 80000;
    var timeout = 13000;
+
+   it("setInterval is called correctly in camera detetor start to capture the frames", function (done) {
+     var newElement = document.createElement('div');
+     var width = 640;
+     var height = 480;
+     var processFPS = 5;
+     var observer = {onInitialized: function(){}};
+     spyOn(observer, "onInitialized");
+     spyOn(newElement, "appendChild");
+     var detector = new affdex.CameraDetector(newElement, width, height, processFPS);
+     detector.addEventListener("onInitialized", observer.onInitialized);
+     spyOn(navigator, "getMedia").and.callFake(function() {
+       detector.onWebcamReady(new Blob());
+       detector.videoElement.src = TEST_DATA_SRV_URL+VIDEO_FILE_URL;
+       detector.videoElement.play();
+     });
+
+     var setIntervalSpy = spyOn( window, 'setInterval' );
+     detector.start();
+     expect(newElement.appendChild).toHaveBeenCalled();
+     expect(navigator.getMedia).toHaveBeenCalledWith({video: true, audio: false},
+                               jasmine.any(Function), jasmine.any(Function));
+     setTimeout(function() {
+       expect(setIntervalSpy).toHaveBeenCalledWith(jasmine.any(Function), 250);
+       expect(observer.onInitialized).toHaveBeenCalled();
+       detector.stop();
+       done();
+     }, timeout);
+    });
 
    it("photo detector is started callback is called correctly", function(done) {
      var observer = {onInitialized: function(){}};

@@ -17,8 +17,13 @@ module.exports = function(config) {
     // list of files / patterns to load in the browser
     files: [
       'spec/*spec.js',
-      process.env.AFFDEX_JS_SDK_URL+'/affdex.js'
+      process.env.AFFDEX_JS_SDK_URL+'/affdex.js',
+      {pattern: process.env.TEST_DATA_SRV_URL+'/*', included: false, watched: false, served: true},
     ],
+
+    proxies: {
+      "/videos/*": process.env.TEST_DATA_SRV_URL+'/videos/*'
+    },
 
     // list of files to exclude
     exclude: [
@@ -32,7 +37,8 @@ module.exports = function(config) {
     },
 
     envPreprocessor: [
-      'AFFDEX_JS_SDK_URL'
+      'AFFDEX_JS_SDK_URL',
+      'TEST_DATA_SRV_URL'
     ],
 
 
