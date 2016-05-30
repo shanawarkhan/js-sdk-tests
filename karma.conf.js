@@ -1,5 +1,6 @@
 // Karma configuration
-// Generated on Sat May 28 2016 16:49:54 GMT-0400 (EDT)
+//var globals = require('./spec/globals.js');
+//console.log(globals);
 
 module.exports = function(config) {
   config.set({
@@ -16,9 +17,8 @@ module.exports = function(config) {
     // list of files / patterns to load in the browser
     files: [
       'spec/*spec.js',
-      'src/affdex.js'
+      process.env.AFFDEX_JS_SDK_URL+'/affdex.js'
     ],
-
 
     // list of files to exclude
     exclude: [
@@ -28,7 +28,12 @@ module.exports = function(config) {
     // preprocess matching files before serving them to the browser
     // available preprocessors: https://npmjs.org/browse/keyword/karma-preprocessor
     preprocessors: {
+      '**/*.js': ['env']
     },
+
+    envPreprocessor: [
+      'AFFDEX_JS_SDK_URL'
+    ],
 
 
     // test results reporter to use
@@ -47,7 +52,7 @@ module.exports = function(config) {
 
     // level of logging
     // possible values: config.LOG_DISABLE || config.LOG_ERROR || config.LOG_WARN || config.LOG_INFO || config.LOG_DEBUG
-    logLevel: config.LOG_INFO,
+    logLevel: config.LOG_DEBUG,
 
 
     // enable / disable watching file and executing tests whenever any file changes
@@ -57,7 +62,6 @@ module.exports = function(config) {
     // start these browsers
     // available browser launchers: https://npmjs.org/browse/keyword/karma-launcher
     browsers: ['Chrome', 'Firefox'],
-
 
     // Continuous Integration mode
     // if true, Karma captures browsers, runs the tests and exits

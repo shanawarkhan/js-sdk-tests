@@ -41,18 +41,12 @@ npm install
 
 #### Download the SDK
 
-Running the SDK requires that a version of the SDK be downloaded locally.
+Running the SDK requires that a version of the SDK to be hosted.
 
 ```bash
 CDN_URL=http://affdex-sdk-dist.s3-website-us-east-1.amazonaws.com/js
 BRANCH=nightly
-SRC_URL=${CDN_URL}/${BRANCH}
-mkdir src
-wget ${SRC_URL}/affdex.js -O src/affdex.js
-wget ${SRC_URL}/affdex-worker.js -O src/affdex-worker.js
-wget ${SRC_URL}/affdex-native-bindings.js -O src/affdex-native-bindings.js
-wget ${SRC_URL}/affdex-native-bindings.data -O src/affdex-native-bindings.data
-wget ${SRC_URL}/affdex-native-bindings.asm.js -O src/affdex-native-bindings.asm.js
+export AFFDEX_JS_SDK_URL=${CDN_URL}/${BRANCH}
 ```
 
 #### Run the tests

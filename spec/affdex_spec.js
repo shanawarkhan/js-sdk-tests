@@ -1,3 +1,113 @@
+describe("common detector tests", function() {
+  var detectors = ["Detector", "FrameDetector", "PhotoDetector", "CameraDetector"];
+
+  for(var i in detectors) {
+    it("all expressions metrics are turned on when detectAllExpressions function called", function () {
+      var detector = new affdex[detectors[i]]();
+      detector.detectAllExpressions();
+      for (var metric in detector.detectExpressions) {
+        expect(detector.detectExpressions[metric]).toBe(true);
+      }
+      for (metric in detector.detectEmotions) {
+        expect(detector.detectEmotions[metric]).toBe(false);
+      }
+      for (metric in detector.detectAppearance) {
+        expect(detector.detectAppearance[metric]).toBe(false);
+      }
+    });
+
+    it("all emotions metrics are turned on when detectAllEmotions function called", function () {
+      var detector = new affdex[detectors[i]]();
+      detector.detectAllEmotions();
+      for (var metric in detector.detectEmotions) {
+        expect(detector.detectEmotions[metric]).toBe(true);
+      }
+      for (metric in detector.detectExpressions) {
+        expect(detector.detectExpressions[metric]).toBe(false);
+      }
+      for (metric in detector.detectAppearance) {
+        expect(detector.detectAppearance[metric]).toBe(false);
+      }
+    });
+
+    it("all appearance metrics are turned on when detectAllAppearance function called", function () {
+      var detector = new affdex[detectors[i]]();
+      detector.detectAllAppearance();
+      for (var metric in detector.detectAppearance) {
+        expect(detector.detectAppearance[metric]).toBe(true);
+      }
+      for (metric in detector.detectEmotions) {
+        expect(detector.detectEmotions[metric]).toBe(false);
+      }
+      for (metric in detector.detectExpressions) {
+        expect(detector.detectExpressions[metric]).toBe(false);
+      }
+    });
+
+    it("emoji metrics are turned on when detectAllEmojis function called", function () {
+      var detector = new affdex[detectors[i]]();
+      detector.detectAllEmojis();
+      for (var metric in detector.detectAppearance) {
+        expect(detector.detectEmojis).toBe(true);
+      }
+      for (metric in detector.detectExpressions) {
+        expect(detector.detectExpressions[metric]).toBe(false);
+      }
+      for (metric in detector.detectEmotions) {
+        expect(detector.detectEmotions[metric]).toBe(false);
+      }
+    });
+
+    it("all metrics are turned off by default", function () {
+      var detector = new affdex[detectors[i]]();
+      var claZZ = ["detectExpressions", "detectAppearance", "detectEmotions"];
+      for (var indx in claZZ) {
+        for (var metric in detector[claZZ[indx]]) {
+          expect(detector[claZZ[indx]][metric]).toBe(false);
+        }
+      }
+    });
+
+    it("get callback returns the correct callback", function () {
+      var detector = new affdex[detectors[i]]();
+      var callbacks = ["onReset", "onImageResults", "onWebcamDenied",
+                       "onWebcamAllowed", "onInitialized", "onStopped"];
+      for (var indx in callbacks) {
+        detector.addEventListener(callbacks[indx], function(){return callbacks[indx]});
+        expect(detector.getCallback([callbacks[indx]])()).toBe(callbacks[indx]);
+
+      }
+    });
+
+    it("add event listener adds the callback", function () {
+      var detector = new affdex[detectors[i]]();
+      var callbacks = ["onReset", "onImageResults", "onWebcamDenied",
+                       "onWebcamAllowed", "onInitialized", "onStopped"];
+      for (var indx in callbacks) {
+        detector.addEventListener(callbacks[indx], function(){return callbacks[indx]});
+        expect(detector.callbacks[callbacks[indx]]()).toBe(callbacks[indx]);
+
+      }
+    });
+
+    it("remove event listener removes the callback", function () {
+      var detector = new affdex[detectors[i]]();
+      var callbacks = ["onReset", "onImageResults", "onWebcamDenied",
+                       "onWebcamAllowed", "onInitialized", "onStopped"];
+      for (var indx in callbacks) {
+        detector.addEventListener(callbacks[indx], function(){return callbacks[indx]});
+        expect(detector.callbacks[callbacks[indx]]()).toBe(callbacks[indx]);
+      }
+
+      for (indx in callbacks) {
+        detector.removeEventListener(callbacks[indx]);
+        expect(detector.callbacks[callbacks[indx]]).toBe(undefined);
+      }
+    });
+  }
+
+});
+
 describe("camera detector tests", function() {
   var width = 640;
   var height = 480;
@@ -30,96 +140,6 @@ describe("camera detector tests", function() {
       expect(detector.detectAppearance[metric]).toBe(false);
     }
   });
-
-  it("all emotions metrics are turned on when detectAllEmotions function called", function () {
-    var detector = new affdex.CameraDetector(newElement, width, height, processFPS);
-    detector.detectAllEmotions();
-    for (var metric in detector.detectEmotions) {
-      expect(detector.detectEmotions[metric]).toBe(true);
-    }
-    for (metric in detector.detectExpressions) {
-      expect(detector.detectExpressions[metric]).toBe(false);
-    }
-    for (metric in detector.detectAppearance) {
-      expect(detector.detectAppearance[metric]).toBe(false);
-    }
-  });
-
-  it("all appearance metrics are turned on when detectAllAppearance function called", function () {
-    var detector = new affdex.CameraDetector(newElement, width, height, processFPS);
-    detector.detectAllAppearance();
-    for (var metric in detector.detectAppearance) {
-      expect(detector.detectAppearance[metric]).toBe(true);
-    }
-    for (metric in detector.detectEmotions) {
-      expect(detector.detectEmotions[metric]).toBe(false);
-    }
-    for (metric in detector.detectExpressions) {
-      expect(detector.detectExpressions[metric]).toBe(false);
-    }
-  });
-
-  it("emoji metrics are turned on when detectAllEmojis function called", function () {
-    var detector = new affdex.CameraDetector(newElement, width, height, processFPS);
-    detector.detectAllEmojis();
-    for (var metric in detector.detectAppearance) {
-      expect(detector.detectEmojis).toBe(true);
-    }
-    for (metric in detector.detectExpressions) {
-      expect(detector.detectExpressions[metric]).toBe(false);
-    }
-    for (metric in detector.detectEmotions) {
-      expect(detector.detectEmotions[metric]).toBe(false);
-    }
-  });
-
-  it("all metrics are turned off by default", function () {
-    var detector = new affdex.CameraDetector(newElement, width, height, processFPS);
-    var claZZ = ["detectExpressions", "detectAppearance", "detectEmotions"];
-    for (var indx in claZZ) {
-      for (var metric in detector[claZZ[indx]]) {
-        expect(detector[claZZ[indx]][metric]).toBe(false);
-      }
-    }
-  });
-
-  it("get callback returns the correct callback", function () {
-    var detector = new affdex.CameraDetector(newElement, width, height, processFPS);
-    var callbacks = ["onReset", "onImageResults", "onWebcamDenied",
-                     "onWebcamAllowed", "onInitialized", "onStopped"];
-    for (var indx in callbacks) {
-      detector.addEventListener(callbacks[indx], function(){return callbacks[indx]});
-      expect(detector.getCallback([callbacks[indx]])()).toBe(callbacks[indx]);
-
-    }
-  });
-
-  it("add event listener adds the callback", function () {
-    var detector = new affdex.CameraDetector(newElement, width, height, processFPS);
-    var callbacks = ["onReset", "onImageResults", "onWebcamDenied",
-                     "onWebcamAllowed", "onInitialized", "onStopped"];
-    for (var indx in callbacks) {
-      detector.addEventListener(callbacks[indx], function(){return callbacks[indx]});
-      expect(detector.callbacks[callbacks[indx]]()).toBe(callbacks[indx]);
-
-    }
-  });
-
-  it("remove event listener removes the callback", function () {
-    var detector = new affdex.CameraDetector(newElement, width, height, processFPS);
-    var callbacks = ["onReset", "onImageResults", "onWebcamDenied",
-                     "onWebcamAllowed", "onInitialized", "onStopped"];
-    for (var indx in callbacks) {
-      detector.addEventListener(callbacks[indx], function(){return callbacks[indx]});
-      expect(detector.callbacks[callbacks[indx]]()).toBe(callbacks[indx]);
-    }
-
-    for (indx in callbacks) {
-      detector.removeEventListener(callbacks[indx]);
-      expect(detector.callbacks[callbacks[indx]]).toBe(undefined);
-    }
-  });
-
 
   it("start function initializes attempts to call navigator.getMedia with correct parameters", function () {
     spyOn(newElement, "appendChild");
@@ -167,5 +187,51 @@ describe("camera detector tests", function() {
                               jasmine.any(Function), jasmine.any(Function));
     expect(observer.onWebcamAllowed).toHaveBeenCalled();
   });
-
  });
+
+ describe("photo detector tests", function() {
+   beforeEach(function(){
+     spyOn(affdex, "getAffdexDotJsLocation").and.callFake(function() {
+       return window.__env__["AFFDEX_JS_SDK_URL"]+'/';
+     });
+   });
+
+   it("constructor parameters to be set properly", function () {
+     var detector = new affdex.PhotoDetector();
+       expect(detector.isRunning).toBe(false);
+       expect(detector.staticMode).toBe(true);
+       expect(detector.detectEmojis).toBe(false);
+       expect(detector.isWorkerInitialized).toBe(false);
+       expect(detector.faceDetectorMode).toBe(affdex.FaceDetectorMode.SMALL_FACES);
+   });
+
+   jasmine.DEFAULT_TIMEOUT_INTERVAL = 80000;
+
+   it("photo detector is started callback is called correctly", function(done) {
+     var observer = {onInitialized: function(){}};
+     spyOn(observer, "onInitialized");
+     var detector = new affdex.PhotoDetector();
+     detector.addEventListener("onInitialized", observer.onInitialized);
+     detector.detectAllExpressions();
+     detector.start();
+
+      setTimeout(function() {
+        expect(observer.onInitialized).toHaveBeenCalled();
+        done();
+      }, 5000);
+    });
+
+    it("frame detector is started callback is called correctly", function(done) {
+      var observer = {onInitialized: function(){}};
+      spyOn(observer, "onInitialized");
+      var detector = new affdex.FrameDetector();
+      detector.addEventListener("onInitialized", observer.onInitialized);
+      detector.detectAllExpressions();
+      detector.start();
+
+       setTimeout(function() {
+         expect(observer.onInitialized).toHaveBeenCalled();
+         done();
+       }, 5000);
+     });
+});

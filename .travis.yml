@@ -11,12 +11,7 @@ before_script:
 - export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/lib/chromium-browser/libs
 - export DISPLAY=:99.0
 - export CDN_URL=http://affdex-sdk-dist.s3-website-us-east-1.amazonaws.com/js
-- export SRC_URL=${CDN_URL}/$BRANCH
-- wget ${SRC_URL}/affdex.js -O src/affdex.js
-- wget ${SRC_URL}/affdex-worker.js -O src/affdex-worker.js
-- wget ${SRC_URL}/affdex-native-bindings.js -O src/affdex-native-bindings.js
-- wget ${SRC_URL}/affdex-native-bindings.data -O src/affdex-native-bindings.data
-- wget ${SRC_URL}/affdex-native-bindings.asm.js -O src/affdex-native-bindings.asm.js
+- export AFFDEX_JS_SDK_URL=${CDN_URL}/$BRANCH
 - npm install
 script:
 - npm test
