@@ -39,7 +39,7 @@ After installing node, and required browsers, install the required node modules
 npm install
 ```
 
-#### Download the SDK
+#### Setup the SDK
 
 Running the SDK requires that a version of the SDK to be hosted.
 
