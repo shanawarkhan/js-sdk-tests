@@ -7,6 +7,38 @@ describe("common detector tests", function() {
   var detectors = ["Detector", "FrameDetector", "PhotoDetector", "CameraDetector"];
 
   for(var i in detectors) {
+    it(detectors[i]+" reset failure callback is called correctly", function(done) {
+      var observer = {success: function(){}, failure: function(){}};
+      spyOn(observer, "success");
+      spyOn(observer, "failure");
+      var detector = new affdex[detectors[i]]();
+      detector.addEventListener("onResetSuccess", observer.success);
+      detector.addEventListener("onResetFailure", observer.failure);
+      detector.reset();
+
+      setTimeout(function() {
+        expect(observer.success).not.toHaveBeenCalled();
+        expect(observer.failure).toHaveBeenCalled();
+        done();
+      }, 500);
+    });
+
+    it(detectors[i]+" stop failure callback is called correctly", function(done) {
+      var observer = {success: function(){}, failure: function(){}};
+      spyOn(observer, "success");
+      spyOn(observer, "failure");
+      var detector = new affdex[detectors[i]]();
+      detector.addEventListener("onStopSuccess", observer.success);
+      detector.addEventListener("onStopFailure", observer.failure);
+      detector.stop();
+
+      setTimeout(function() {
+        expect(observer.success).not.toHaveBeenCalled();
+        expect(observer.failure).toHaveBeenCalled();
+        done();
+      }, 500);
+    });
+
     it("all expressions metrics are turned on when detectAllExpressions function called", function () {
       var detector = new affdex[detectors[i]]();
       detector.detectAllExpressions();
@@ -75,19 +107,33 @@ describe("common detector tests", function() {
 
     it("get callback returns the correct callback", function () {
       var detector = new affdex[detectors[i]]();
-      var callbacks = ["onReset", "onImageResults", "onWebcamDenied",
-                       "onWebcamAllowed", "onInitialized", "onStopped"];
+      var callbacks = [{"event":"onReset"},
+                       {"event": "onWebcamConnect"},
+                       {"event": "onInitialize"},
+                       {"event": "onStop"}];
+      // Stage data
       for (var indx in callbacks) {
-        detector.addEventListener(callbacks[indx], function(){return callbacks[indx]});
-        expect(detector.getCallback([callbacks[indx]])()).toBe(callbacks[indx]);
+        var bools = [true, false];
+        for (var b in bools) {
+          callbacks[indx].status = b;
+          callbacks[indx].statusStr = b? "Success" : "Failure";
+        }
+      }
+
+      for (indx in callbacks) {
+        var eventName = callbacks[indx].event+callbacks[indx].statusStr;
+        detector.addEventListener(eventName, function(){
+          return eventName;
+        });
+        expect(detector.getCallback(callbacks[indx].event, callbacks[indx].status)()).toBe(eventName);
 
       }
     });
 
     it("add event listener adds the callback", function () {
       var detector = new affdex[detectors[i]]();
-      var callbacks = ["onReset", "onImageResults", "onWebcamDenied",
-                       "onWebcamAllowed", "onInitialized", "onStopped"];
+      var callbacks = ["onResetSuccess", "onImageResults", "onWebcamConnectFailure",
+                       "onWebcamConnectSuccess", "onInitializeSuccess", "onStopSuccess"];
       for (var indx in callbacks) {
         detector.addEventListener(callbacks[indx], function(){return callbacks[indx]});
         expect(detector.callbacks[callbacks[indx]]()).toBe(callbacks[indx]);
@@ -97,8 +143,8 @@ describe("common detector tests", function() {
 
     it("remove event listener removes the callback", function () {
       var detector = new affdex[detectors[i]]();
-      var callbacks = ["onReset", "onImageResults", "onWebcamDenied",
-                       "onWebcamAllowed", "onInitialized", "onStopped"];
+      var callbacks = ["onResetSuccess", "onImageResults", "onWebcamConnectFailure",
+                       "onWebcamConnectSuccess", "onInitializeSuccess", "onStopSuccess"];
       for (var indx in callbacks) {
         detector.addEventListener(callbacks[indx], function(){return callbacks[indx]});
         expect(detector.callbacks[callbacks[indx]]()).toBe(callbacks[indx]);
@@ -167,28 +213,28 @@ describe("camera detector tests", function() {
   it("camera denied callback is called if user denied camera", function () {
     spyOn(newElement, "appendChild");
 
-    var observer = {onWebcamDenied: function(){}};
-    spyOn(observer, "onWebcamDenied");
+    var observer = {onWebcamConnectFailure: function(){}};
+    spyOn(observer, "onWebcamConnectFailure");
     spyOn(navigator, "getMedia").and.callFake(function() {
-      detector.getCallback("onWebcamDenied")();
+      detector.getCallback("onWebcamConnect", false)();
     });
     var detector = new affdex.CameraDetector(newElement, width, height, processFPS);
-    detector.addEventListener("onWebcamDenied", observer.onWebcamDenied);
+    detector.addEventListener("onWebcamConnectFailure", observer.onWebcamConnectFailure);
     detector.start();
     expect(newElement.appendChild).toHaveBeenCalled();
     expect(navigator.getMedia).toHaveBeenCalledWith({video: true, audio: false},
-                              jasmine.any(Function), observer.onWebcamDenied);
-    expect(observer.onWebcamDenied).toHaveBeenCalled();
+                              jasmine.any(Function), observer.onWebcamConnectFailure);
+    expect(observer.onWebcamConnectFailure).toHaveBeenCalled();
   });
 
   it("camera allowed callback is called if user allowed the camera", function () {
     spyOn(newElement, "appendChild");
     var detector = new affdex.CameraDetector(newElement, width, height, processFPS);
-    var observer = {onWebcamAllowed: function(){}};
-    spyOn(observer, "onWebcamAllowed");
-    detector.addEventListener("onWebcamAllowed", observer.onWebcamAllowed);
+    var observer = {onWebcamConnectSuccess: function(){}};
+    spyOn(observer, "onWebcamConnectSuccess");
+    detector.addEventListener("onWebcamConnectSuccess", observer.onWebcamConnectSuccess);
     spyOn(detector, "onWebcamReady").and.callFake(function(stream) {
-      detector.getCallback("onWebcamAllowed")();
+      detector.getCallback("onWebcamConnect", true)();
     });
     spyOn(navigator, "getMedia").and.callFake(function() {
       detector.onWebcamReady(new Blob());
@@ -197,7 +243,7 @@ describe("camera detector tests", function() {
     expect(newElement.appendChild).toHaveBeenCalled();
     expect(navigator.getMedia).toHaveBeenCalledWith({video: true, audio: false},
                               jasmine.any(Function), jasmine.any(Function));
-    expect(observer.onWebcamAllowed).toHaveBeenCalled();
+    expect(observer.onWebcamConnectSuccess).toHaveBeenCalled();
   });
 
   it("photo detector constructor parameters to be set properly", function () {
@@ -222,48 +268,64 @@ describe("camera detector tests", function() {
    var timeout = 13000;
 
    it("photo detector is started callback is called correctly", function(done) {
-     var observer = {onInitialized: function(){}};
-     spyOn(observer, "onInitialized");
+     var observer = {onInitializeSuccess: function(){}};
+     spyOn(observer, "onInitializeSuccess");
      var detector = new affdex.PhotoDetector();
-     detector.addEventListener("onInitialized", observer.onInitialized);
+     detector.addEventListener("onInitializeSuccess", observer.onInitializeSuccess);
      detector.detectAllExpressions();
      detector.start();
 
       setTimeout(function() {
-        expect(observer.onInitialized).toHaveBeenCalled();
+        expect(observer.onInitializeSuccess).toHaveBeenCalled();
         done();
       }, timeout);
     });
 
     it("frame detector is started callback is called correctly", function(done) {
-      var observer = {onInitialized: function(){}};
-      spyOn(observer, "onInitialized");
+      var observer = {onInitializeSuccess: function(){}};
+      spyOn(observer, "onInitializeSuccess");
       var detector = new affdex.FrameDetector();
-      detector.addEventListener("onInitialized", observer.onInitialized);
+      detector.addEventListener("onInitializeSuccess", observer.onInitializeSuccess);
       detector.detectAllExpressions();
       detector.start();
 
        setTimeout(function() {
-         expect(observer.onInitialized).toHaveBeenCalled();
+         expect(observer.onInitializeSuccess).toHaveBeenCalled();
          done();
        }, timeout);
      });
 
      var detectors = ["FrameDetector", "PhotoDetector"];
      for(var i in detectors) {
-       it(detectors[i]+" reset callback is called correctly", function(done) {
-         var observer = {onInitialized: function(){
+       it(detectors[i]+" process failure callback is called correctly", function(done) {
+         var observer = {success: function(){}, failure: function(){}};
+         spyOn(observer, "success");
+         spyOn(observer, "failure");
+         var detector = new affdex[detectors[i]]();
+         detector.addEventListener("onImageResultsSuccess", observer.success);
+         detector.addEventListener("onImageResultsFailure", observer.failure);
+         detector.process(null);
+
+         setTimeout(function() {
+           expect(observer.success).not.toHaveBeenCalled();
+           expect(observer.failure).toHaveBeenCalled();
+           done();
+         }, 500);
+       });
+
+       it(detectors[i]+" reset success callback is called correctly", function(done) {
+         var observer = {onInitializeSuccess: function(){
            detector.reset();
            setTimeout(function() {
-             expect(observer.onReset).toHaveBeenCalled();
+             expect(observer.onResetSuccess).toHaveBeenCalled();
              done();
            }, timeout);
          },
-         onReset: function(){}};
-         spyOn(observer, "onReset");
+         onResetSuccess: function(){}};
+         spyOn(observer, "onResetSuccess");
          var detector = new affdex[detectors[i]]();
-         detector.addEventListener("onInitialized", observer.onInitialized);
-         detector.addEventListener("onReset", observer.onReset);
+         detector.addEventListener("onInitializeSuccess", observer.onInitializeSuccess);
+         detector.addEventListener("onResetSuccess", observer.onResetSuccess);
          detector.detectAllExpressions();
          detector.start();
        });
