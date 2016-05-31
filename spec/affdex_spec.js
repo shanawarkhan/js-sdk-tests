@@ -248,4 +248,24 @@ describe("camera detector tests", function() {
          done();
        }, timeout);
      });
+
+     var detectors = ["FrameDetector", "PhotoDetector"];
+     for(var i in detectors) {
+       it(detectors[i]+" reset callback is called correctly", function(done) {
+         var observer = {onInitialized: function(){
+           detector.reset();
+           setTimeout(function() {
+             expect(observer.onReset).toHaveBeenCalled();
+             done();
+           }, timeout);
+         },
+         onReset: function(){}};
+         spyOn(observer, "onReset");
+         var detector = new affdex[detectors[i]]();
+         detector.addEventListener("onInitialized", observer.onInitialized);
+         detector.addEventListener("onReset", observer.onReset);
+         detector.detectAllExpressions();
+         detector.start();
+       });
+     }
 });
