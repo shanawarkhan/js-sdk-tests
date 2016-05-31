@@ -41,7 +41,7 @@ npm install
 
 #### Setup the SDK
 
-Running the SDK requires that a version of the SDK to be hosted.
+Running the tests requires that a version of the SDK to be hosted.
 
 ```bash
 CDN_URL=http://affdex-sdk-dist.s3-website-us-east-1.amazonaws.com/
