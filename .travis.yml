@@ -1,0 +1,21 @@
+dist: trusty
+language: node_js
+install:
+- sudo apt-get update
+- sudo apt-get --yes --force-yes install chromium-chromedriver
+before_script:
+- sh -e /etc/init.d/xvfb start
+- mkdir src
+- "if [ -z $BRANCH ]; then BRANCH=nightly; fi"
+- export PATH=$PATH:/usr/lib/chromium-browser/
+- export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/lib/chromium-browser/libs
+- export DISPLAY=:99.0
+- export CDN_URL=http://affdex-sdk-dist.s3-website-us-east-1.amazonaws.com
+- export AFFDEX_JS_SDK_URL=${CDN_URL}/js/$BRANCH
+- export TEST_DATA_SRV_URL=${CDN_URL}/testdata
+- npm install
+script:
+- npm test
+notifications:
+  slack:
+    secure: YdIZjIR4+YWwiuKzzZ8D/VbslMEvBnbiMGwc7UNsDxkAwywGVKQ36m/uQjR72iMI1z/ypMpChN41LhOSBlHTi1RLu4zBtw2X/R8KYw47OlfVe3k75hNLZXbpCSA3ccHb9GwuIYY8GvdZhIjyswYINxQtsPDlRbsdpKNrjkcfZZYW+XEbCgbpTPaFmkA0PedBQT4J+hZz4RDZtQfFxgNcV8prc6b1uHfN36lJjJKbgEgVPO+oDu3taPPsT19N7O4BwWpqPd25JhWGpoktWvGIov2/dST7cbNpnL1p5+dyr/UCGo6mpfz23WyvRlvRXX56EU413cH3JOq64caKWP+ijfNpiFDNN2e2HaG8rBGolxAEgt2ARZV3VEKXK2MqidVN39h4SUA4loy2NvWypWxSUg8YiKXN1wpOySbRHtTswsF/2mKmAOQLlzB1gXO7udpsR00aGTlZCqrCsgXT+zm69ig7z0CFmxR2Xo8RwtQ4ucC3im4TxenTzL9sMUQApXMjnSHQCX9VpPJIIRL4/mn/ujl92W3xnrdEUxx2ltGgyH3fBw/CNWxSMxeMBlbL4qCxLiv7fZn6k+4ZGXnsvmQujfiSCjPyLp3ZgapKzbn3YM42RzgRNMrs9jhR6uZICE0ouWBYd6mRekAqZ5iC/49Q+jFvRFlB94687TdGHmPumkw=
