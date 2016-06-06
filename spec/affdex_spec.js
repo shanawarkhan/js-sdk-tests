@@ -175,7 +175,7 @@ describe("camera detector tests", function() {
     var divRoot = document.getElementById("affdex_elements");
     var width = 640;
     var height = 480;
-    var processFPS = 5;
+    var processFPS = 30;
     var detector = new affdex.CameraDetector(divRoot, width, height, processFPS);
       expect(detector.processFPS).toBe(processFPS);
       expect(detector.isRunning).toBe(false);
