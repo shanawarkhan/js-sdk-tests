@@ -1,6 +1,10 @@
-// Karma configuration
-//var globals = require('./spec/globals.js');
-//console.log(globals);
+function hostedTestFiles (list) {
+  ret = {};
+  list.forEach(function(name, i) {
+    ret[name] = process.env.TEST_DATA_SRV_URL+name;
+  });
+  return ret;
+}
 
 module.exports = function(config) {
   config.set({
@@ -21,9 +25,16 @@ module.exports = function(config) {
       {pattern: process.env.TEST_DATA_SRV_URL+'/*', included: false, watched: false, served: true},
     ],
 
-    proxies: {
-      "/videos/*": process.env.TEST_DATA_SRV_URL+'/videos/*'
-    },
+    proxies: hostedTestFiles([
+      "/videos/web_face_video.mp4",
+      "/videos/black.mp4",
+      "/photos/merkel.jpg",
+      "/photos/bicentennial.jpg",
+      "/photos/matt-czuchry.jpg",
+      "/photos/steve_disgust.bmp",
+      "/photos/steve_neutral.bmp",
+      "/photos/steve_surprised.bmp"
+    ]),
 
     // list of files to exclude
     exclude: [
@@ -66,10 +77,20 @@ module.exports = function(config) {
 
     browserNoActivityTimeout: 100000,
 
+    customLaunchers: {
+      Chrome_with_fake_media: {
+        base: 'Chrome',
+        flags: ['--use-fake-ui-for-media-stream']
+      },
+      Chrome_Canary_with_fake_media: {
+        base: 'Chrome Canary',
+        flags: ['--use-fake-ui-for-media-stream']
+      }
+    },
 
     // start these browsers
     // available browser launchers: https://npmjs.org/browse/keyword/karma-launcher
-    browsers: ['Chrome', 'Firefox'],
+    browsers: ['Chrome_with_fake_media', 'Firefox'],
 
     // Continuous Integration mode
     // if true, Karma captures browsers, runs the tests and exits

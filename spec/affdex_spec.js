@@ -163,12 +163,20 @@ describe("camera detector tests", function() {
   var width = 640;
   var height = 480;
   var processFPS = 5;
-  var newElement = document.createElement('div');
+  var newElement = null;
 
   beforeEach(function(){
+    newElement = document.createElement('div');
+    newElement.id = "affdex_elements";
+    document.body.appendChild(newElement);
     spyOn(affdex, "getAffdexDotJsLocation").and.callFake(function() {
       return AFFDEX_SRV_URL;
     });
+  });
+
+  afterEach(function(){
+    var divRoot = document.getElementById("affdex_elements");
+    document.body.removeChild(divRoot);
   });
 
   it("constructor parameters to be set properly", function () {
@@ -176,7 +184,7 @@ describe("camera detector tests", function() {
     var width = 640;
     var height = 480;
     var processFPS = 30;
-    var detector = new affdex.CameraDetector(divRoot, width, height, processFPS);
+    var detector = new affdex.CameraDetector(divRoot, width, height);
       expect(detector.processFPS).toBe(processFPS);
       expect(detector.isRunning).toBe(false);
       expect(detector.staticMode).toBe(false);
@@ -186,7 +194,7 @@ describe("camera detector tests", function() {
   });
 
   it("all expressions metrics are turned on when detectAllExpressions function called", function () {
-    var detector = new affdex.CameraDetector(newElement, width, height, processFPS);
+    var detector = new affdex.CameraDetector(newElement, width, height);
     detector.detectAllExpressions();
     for (var metric in detector.detectExpressions) {
       expect(detector.detectExpressions[metric]).toBe(true);
@@ -199,51 +207,50 @@ describe("camera detector tests", function() {
     }
   });
 
-  it("start function initializes attempts to call navigator.getMedia with correct parameters", function () {
-    spyOn(newElement, "appendChild");
-    spyOn(navigator, "getMedia");
-    var detector = new affdex.CameraDetector(newElement, width, height, processFPS);
+  it("start function initializes attempts to call _startCamera callback", function (done) {
+    var detector = new affdex.CameraDetector(newElement, width, height);
+    spyOn(detector, "_startCamera").and.callFake(function(){
+      expect(detector.videoElement.id).toBe("face_video");
+      done();
+    });
+
     detector.start();
-    expect(newElement.appendChild).toHaveBeenCalled();
-    expect(navigator.getMedia).toHaveBeenCalledWith({video: true, audio: false},
-                              jasmine.any(Function), jasmine.any(Function));
-    expect(detector.videoElement.id).toBe("face_video");
   });
 
-  it("camera denied callback is called if user denied camera", function () {
-    spyOn(newElement, "appendChild");
-
-    var observer = {onWebcamConnectFailure: function(){}};
-    spyOn(observer, "onWebcamConnectFailure");
-    spyOn(navigator, "getMedia").and.callFake(function() {
-      detector.getCallback("onWebcamConnect", false)();
+  /*it("_startCamera calls navigator.mediaDevices.getUserMedia with correct parameters", function () {
+    var detector = new affdex.CameraDetector(newElement, width, height);
+    //navigator = {mediaDevices: {getUserMedia: function(){}}};
+    spyOn(navigator.mediaDevices, 'getUserMedia').and.callFake(function() {
+      return {
+        then: function(callback) { return this; },
+        catch: function(callback) {}
+      };
     });
-    var detector = new affdex.CameraDetector(newElement, width, height, processFPS);
+    detector._startCamera();
+    expect(navigator.mediaDevices.getUserMedia).toHaveBeenCalledWith({video: true, audio: false});
+  });*/
+
+  it("camera denied callback is called if user denied camera", function (done) {
+    var detector = new affdex.CameraDetector(newElement, width, height);
+    var observer = {onWebcamConnectFailure: function(){done();}};
+    spyOn(detector, "_startCamera").and.callFake(function() {
+      this.getCallback("onWebcamConnect", false)();
+    });
     detector.addEventListener("onWebcamConnectFailure", observer.onWebcamConnectFailure);
     detector.start();
-    expect(newElement.appendChild).toHaveBeenCalled();
-    expect(navigator.getMedia).toHaveBeenCalledWith({video: true, audio: false},
-                              jasmine.any(Function), observer.onWebcamConnectFailure);
-    expect(observer.onWebcamConnectFailure).toHaveBeenCalled();
   });
 
-  it("camera allowed callback is called if user allowed the camera", function () {
-    spyOn(newElement, "appendChild");
-    var detector = new affdex.CameraDetector(newElement, width, height, processFPS);
-    var observer = {onWebcamConnectSuccess: function(){}};
-    spyOn(observer, "onWebcamConnectSuccess");
+  it("camera allowed callback is called if user allowed the camera", function (done) {
+    var detector = new affdex.CameraDetector(newElement, width, height);
+    var observer = {onWebcamConnectSuccess: function(){ done(); }};
     detector.addEventListener("onWebcamConnectSuccess", observer.onWebcamConnectSuccess);
     spyOn(detector, "onWebcamReady").and.callFake(function(stream) {
       detector.getCallback("onWebcamConnect", true)();
     });
-    spyOn(navigator, "getMedia").and.callFake(function() {
+    spyOn(detector, "_startCamera").and.callFake(function() {
       detector.onWebcamReady(new Blob());
     });
     detector.start();
-    expect(newElement.appendChild).toHaveBeenCalled();
-    expect(navigator.getMedia).toHaveBeenCalledWith({video: true, audio: false},
-                              jasmine.any(Function), jasmine.any(Function));
-    expect(observer.onWebcamConnectSuccess).toHaveBeenCalled();
   });
 
   it("photo detector constructor parameters to be set properly", function () {
@@ -258,7 +265,7 @@ describe("camera detector tests", function() {
  });
 
  describe("long and slow tests", function() {
-   beforeEach(function(){
+   beforeAll(function(){
      spyOn(affdex, "getAffdexDotJsLocation").and.callFake(function() {
        return AFFDEX_SRV_URL;
      });
@@ -268,31 +275,17 @@ describe("camera detector tests", function() {
    var timeout = 13000;
 
    it("photo detector is started callback is called correctly", function(done) {
-     var observer = {onInitializeSuccess: function(){}};
-     spyOn(observer, "onInitializeSuccess");
-     var detector = new affdex.PhotoDetector();
-     detector.addEventListener("onInitializeSuccess", observer.onInitializeSuccess);
-     detector.detectAllExpressions();
+     var observer = {success: function(){done();}};
+     var detector = new affdex.PhotoDetector(affdex.FaceDetectorMode.SMALL_FACES);
+     detector.addEventListener("onInitializeSuccess", observer.success);
      detector.start();
-
-      setTimeout(function() {
-        expect(observer.onInitializeSuccess).toHaveBeenCalled();
-        done();
-      }, timeout);
     });
 
     it("frame detector is started callback is called correctly", function(done) {
-      var observer = {onInitializeSuccess: function(){}};
-      spyOn(observer, "onInitializeSuccess");
+      var observer = {success: function(){done();}};
       var detector = new affdex.FrameDetector();
-      detector.addEventListener("onInitializeSuccess", observer.onInitializeSuccess);
-      detector.detectAllExpressions();
+      detector.addEventListener("onInitializeSuccess", observer.success);
       detector.start();
-
-       setTimeout(function() {
-         expect(observer.onInitializeSuccess).toHaveBeenCalled();
-         done();
-       }, timeout);
      });
 
      var detectors = ["FrameDetector", "PhotoDetector"];
@@ -314,20 +307,135 @@ describe("camera detector tests", function() {
        });
 
        it(detectors[i]+" reset success callback is called correctly", function(done) {
-         var observer = {onInitializeSuccess: function(){
-           detector.reset();
-           setTimeout(function() {
-             expect(observer.onResetSuccess).toHaveBeenCalled();
-             done();
-           }, timeout);
-         },
-         onResetSuccess: function(){}};
-         spyOn(observer, "onResetSuccess");
+         var observer = {
+         onInitializeSuccess: function(){detector.reset();},
+         onResetSuccess: function(){done();},
+         onResetFailure: function(){throw "onResetFailure is not expected";}};
          var detector = new affdex[detectors[i]]();
          detector.addEventListener("onInitializeSuccess", observer.onInitializeSuccess);
          detector.addEventListener("onResetSuccess", observer.onResetSuccess);
-         detector.detectAllExpressions();
+         detector.addEventListener("onResetFailure", observer.onResetFailure);
          detector.start();
        });
      }
 });
+
+
+  var photos = [
+  {
+    "path": "/photos/bicentennial.jpg", "metrics" : {
+    "appearance": { "gender": "Unknown", "glasses": "No" },
+    "expressions": {},
+    "emotions": {} }
+  },
+  {
+    "path": "/photos/matt-czuchry.jpg", "metrics" : {
+    "appearance": { "gender": "Male", "glasses": "No" },
+    "expressions": {},
+    "emotions": {} }
+  },
+  {
+     "path": "/photos/merkel.jpg", "metrics" : {
+     "appearance": { "glasses": "No" },
+     "expressions": {"smile": 99},
+     "emotions": {"joy": 99} }
+  },
+  {
+      "path": "/photos/steve_disgust.bmp", "metrics" : {
+      "appearance": { "gender": "Male", "glasses": "No" },
+      "expressions": {"browFurrow": 99},
+      "emotions": {"anger": 37} }
+  },
+  {
+     "path": "/photos/steve_neutral.bmp", "metrics" : {
+     "appearance": { "gender": "Male", "glasses": "No" },
+     "expressions": {"smile": 0, "innerBrowRaise": 0, "browRaise": 0,
+                     "browFurrow": 0, "noseWrinkle": 0, "upperLipRaise": 0,
+                     "lipCornerDepressor": 0, "chinRaise": 0, "lipPucker": 0,
+                     "lipPress": 0, "lipSuck": 0, "mouthOpen": 0,
+                     "smirk": 0, "eyeClosure": 0, "attention": 0},
+     "emotions": { "joy": 0, "fear": 0, "sadness": 0, "anger": 0,
+                   "disgust": 0, "surprise": 0, "contempt": 0 } }
+   },
+   {
+      "path": "/photos/steve_surprised.bmp", "metrics" : {
+      "appearance": { "gender": "Male", "glasses": "No" },
+      "expressions": {"browRaise": 99},
+      "emotions": {"surprise": 49} }
+    }
+];
+
+ describe("processing tests", function() {
+   jasmine.DEFAULT_TIMEOUT_INTERVAL = 20000;
+   var detector = null;
+   beforeAll(function(done){
+     spyOn(affdex, "getAffdexDotJsLocation").and.callFake(function() {
+       return AFFDEX_SRV_URL;
+     });
+    detector = new affdex.PhotoDetector(affdex.FaceDetectorMode.SMALL_FACES);
+    detector.detectAllEmotions();
+    detector.detectAllExpressions();
+    detector.detectAllAppearance();
+    detector.addEventListener("onInitializeSuccess", function() { done(); });
+    detector.addEventListener("onInitializeFailure", function() {
+       throw "unable to initialize photo detector";
+       done();
+     });
+     detector.start();
+   });
+
+   afterAll(function(done){
+     detector.addEventListener("onStopSuccess", function() { done(); });
+     if (detector) detector.stop();
+   });
+
+   function testPhotos(path, metrics) {
+     describe("Testing "+path, function(){
+       var img = null;
+       var results = null;
+       beforeEach(function(done){
+         img = new Image();
+         var canvas = document.createElement('canvas');
+         var ctx = canvas.getContext('2d');
+         img.onload = function(){
+           canvas.width = img.width;
+           canvas.height = img.height;
+           ctx.drawImage(img, 0, 0, img.width, img.height); // Or at whatever offset you like
+           var imgData = ctx.getImageData(0, 0, img.width, img.height);
+           detector.addEventListener("onImageResultsSuccess", function(faces, imgData, timestamp){
+             expect(faces.length).toEqual(1);
+             results = faces;
+             done();
+           });
+           detector.process(imgData);
+         };
+         img.src = path;
+       });
+
+       it("Test appearance metrics", function(){
+         //Test Appearance metrics
+         for (var metric in metrics.expressions) {
+           expect(results[0].appearance[metric]).toEqual(metrics.appearance[metric], metric);
+         }
+       });
+
+       it("Test expressions metrics", function(){
+         //Test Non discreet metrics
+         for (var metric in metrics.expressions) {
+           expect(results[0].expressions[metric]).toBeGreaterThan(metrics.expressions[metric], metric);
+         }
+       });
+
+       it("test emotions metrics", function(){
+         //Test Non discreet metrics
+         for (var metric in metrics.emotions) {
+           expect(results[0].emotions[metric]).toBeGreaterThan(metrics.emotions[metric], metric);
+         }
+       });
+     });
+   }
+
+   for (var indx in photos) {
+     testPhotos(photos[indx].path, photos[indx].metrics);
+   }
+ });
