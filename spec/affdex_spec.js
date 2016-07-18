@@ -273,23 +273,54 @@ describe("camera detector tests", function() {
 
    jasmine.DEFAULT_TIMEOUT_INTERVAL = 80000;
    var timeout = 13000;
+   var detectors = ["FrameDetector", "PhotoDetector"];
+   for(var i in detectors) {
 
-   it("photo detector is started callback is called correctly", function(done) {
-     var observer = {success: function(){done();}};
-     var detector = new affdex.PhotoDetector(affdex.FaceDetectorMode.SMALL_FACES);
-     detector.addEventListener("onInitializeSuccess", observer.success);
-     detector.start();
-    });
+     it(detectors[i]+" detector returns onImageResultsFailure if not initialized", function (done) {
+       var detector = new affdex.PhotoDetector();
+         expect(detector.isRunning).toBe(false);
 
-    it("frame detector is started callback is called correctly", function(done) {
-      var observer = {success: function(){done();}};
-      var detector = new affdex.FrameDetector();
-      detector.addEventListener("onInitializeSuccess", observer.success);
-      detector.start();
+         var expectedImg = {};
+         var expectedTimestamp = 0;
+         var expectedErr = "the detector is not initialized";
+         detector.addEventListener("onImageResultsFailure", function(img, timestamp, err){
+           expect(img).toBe(expectedImg);
+           expect(timestamp).toBe(expectedTimestamp);
+           expect(err).toBe(expectedErr);
+           done();
+         });
+
+         detector.process(expectedImg, expectedTimestamp);
      });
 
-     var detectors = ["FrameDetector", "PhotoDetector"];
-     for(var i in detectors) {
+     it(detectors[i]+" detector is started callback is called correctly", function(done) {
+         var observer = { success: function(){
+           expect(detector.isRunning).toBe(true);
+           done();
+         }};
+         var detector = new affdex.FrameDetector();
+         detector.addEventListener("onInitializeSuccess", observer.success);
+         expect(detector.isRunning).toBe(false);
+         detector.start();
+        });
+
+       it(detectors[i]+" is stopped callback is called correctly", function(done) {
+         var observer = { success: function(){
+           expect(detector.isRunning).toBe(true);
+           detector.addEventListener("onStopSuccess", function(){
+             expect(detector.isRunning).toBe(false);
+             done();
+           })
+           detector.stop();
+
+           done();
+         }};
+         var detector = new affdex.FrameDetector();
+         detector.addEventListener("onInitializeSuccess", observer.success);
+         expect(detector.isRunning).toBe(false);
+         detector.start();
+        });
+
        it(detectors[i]+" process failure callback is called correctly", function(done) {
          var observer = {success: function(){}, failure: function(){}};
          spyOn(observer, "success");
@@ -324,13 +355,13 @@ describe("camera detector tests", function() {
   var photos = [
   {
     "path": "/photos/bicentennial.jpg", "metrics" : {
-    "appearance": { "gender": "Unknown", "glasses": "No" },
+    "appearance": { "gender": "Unknown", "glasses": "No", "age": "25 - 34" },
     "expressions": {},
     "emotions": {} }
   },
   {
     "path": "/photos/matt-czuchry.jpg", "metrics" : {
-    "appearance": { "gender": "Male", "glasses": "No" },
+    "appearance": { "gender": "Male", "glasses": "No", "age": "35 - 44" },
     "expressions": {},
     "emotions": {} }
   },
@@ -362,7 +393,28 @@ describe("camera detector tests", function() {
       "appearance": { "gender": "Male", "glasses": "No" },
       "expressions": {"browRaise": 99},
       "emotions": {"surprise": 49} }
-    }
+    },
+    {
+       "path": "/photos/latino_woman4.bmp", "metrics" : {
+       "appearance": { "ethnicity": "Hispanic", "glasses": "No",
+                       "gender": "Female", "age": "25 - 34" },
+       "expressions": {},
+       "emotions": {} }
+     },
+     {
+        "path": "/photos/black_woman2.jpg", "metrics" : {
+        "appearance": { "ethnicity": "Black African", "glasses": "No",
+                        "gender": "Female", "age": "18 - 24" },
+        "expressions": {},
+        "emotions": {} }
+      },
+      {
+         "path": "/photos/Caucasian_female_58.jpg", "metrics" : {
+         "appearance": { "ethnicity": "Caucasian", "glasses": "No",
+                         "gender": "Female", "age": "55 - 64"},
+         "expressions": {},
+         "emotions": {} }
+       }
 ];
 
  describe("processing tests", function() {
@@ -414,7 +466,7 @@ describe("camera detector tests", function() {
 
        it("Test appearance metrics", function(){
          //Test Appearance metrics
-         for (var metric in metrics.expressions) {
+         for (var metric in metrics.appearance) {
            expect(results[0].appearance[metric]).toEqual(metrics.appearance[metric], metric);
          }
        });

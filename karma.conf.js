@@ -33,7 +33,10 @@ module.exports = function(config) {
       "/photos/matt-czuchry.jpg",
       "/photos/steve_disgust.bmp",
       "/photos/steve_neutral.bmp",
-      "/photos/steve_surprised.bmp"
+      "/photos/steve_surprised.bmp",
+      "/photos/latino_woman4.bmp",
+      "/photos/Caucasian_female_58.jpg",
+      "/photos/black_woman2.jpg"
     ]),
 
     // list of files to exclude

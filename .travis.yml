@@ -10,7 +10,7 @@ before_script:
 - export PATH=$PATH:/usr/lib/chromium-browser/
 - export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/lib/chromium-browser/libs
 - export DISPLAY=:99.0
-- export CDN_URL=http://affdex-sdk-dist.s3-website-us-east-1.amazonaws.com
+- export CDN_URL=https://download.affectiva.com
 - export AFFDEX_JS_SDK_URL=${CDN_URL}/js/$BRANCH
 - export TEST_DATA_SRV_URL=${CDN_URL}/testdata
 - npm install
