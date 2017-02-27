@@ -44,7 +44,7 @@ npm install
 Running the tests requires that a version of the SDK to be hosted.
 
 ```bash
-CDN_URL=http://affdex-sdk-dist.s3-website-us-east-1.amazonaws.com/
+CDN_URL=http://s3.amazonaws.com/affdex-sdk-dist
 BRANCH=nightly
 export AFFDEX_JS_SDK_URL=${CDN_URL}/js/${BRANCH}
 ```
