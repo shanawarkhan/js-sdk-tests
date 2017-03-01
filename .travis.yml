@@ -6,7 +6,7 @@ install:
 before_script:
 - sh -e /etc/init.d/xvfb start
 - mkdir src
-- "if [ -z $BRANCH ]; then BRANCH=3.1; fi"
+- "if [ -z $BRANCH ]; then BRANCH=3.2; fi"
 - export PATH=$PATH:/usr/lib/chromium-browser/
 - export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/lib/chromium-browser/libs
 - export DISPLAY=:99.0
